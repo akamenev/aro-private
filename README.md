@@ -154,11 +154,102 @@ az network firewall application-rule create -g $RESOURCEGROUP -f aro-private \
  -n 'docker' \
  --source-addresses '*' \
  --protocols 'http=80' 'https=443' \
- --target-fqdns '*cloudflare.docker.com' '*registry-1.docker.io' 'apt.dockerproject.org'
+ --target-fqdns '*cloudflare.docker.com' '*registry-1.docker.io' 'apt.dockerproject.org' 'auth.docker.io'
 ```
 
 ### Associate ARO Subnets to FW
 ```bash
 az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name "$CLUSTER-master" --route-table aro-udr
 az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name "$CLUSTER-worker" --route-table aro-udr
+```
+
+## Test the configuration
+These steps works only if you added rules for Docker images. 
+### Configure the jumpbox
+Log into a jumpbox VM and install `azure-cli`, `oc-cli`, and `jq` utils. For the installation of openshift-cli check the customer portal.
+```bash
+#Install Azure-cli
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+#Install jq
+sudo apt install jq -y
+```
+### Log in ARO cluster
+List cluster credentials:
+```bash
+# Initialize variables
+LOCATION=eastus
+RESOURCEGROUP=aro-v4-private
+CLUSTER=aroprivate
+
+# Login to Azure
+az login
+
+az aro lists-credentials -n $CLUSTER -g $RESOURCEGROUP
+```
+Get an API server endpoint:
+```bash
+az aro show -n $CLUSTER -g $RESOURCEGROUP -o json | jq '.apiserverProfile.url'
+```
+Log in using `oc login`:
+```bash
+oc login
+```
+
+### Run CentOS to test outside connectivity
+Create a pod
+```bash
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: centos
+spec:
+  containers:
+  - name: centos
+    image: centos
+    ports:
+    - containerPort: 80
+    command:
+    - sleep
+    - "3600"
+EOF
+```
+Once the Pod is Running exec into it and test outside connectivity
+```bash
+oc exec -it centos -- /bin/bash
+curl microsoft.com
+```
+### Run a test app and expose it internally via Route
+Create a welcome-app deployment:
+```bash
+oc apply -f link
+```
+Create a welcome-app service with a ClusterIP:
+```bash
+oc apply -f link
+```
+Expose a welcome-app service via route:
+```bash
+oc expose service welcome-app
+```
+
+### Expose the app externally with an Internal Load Balancer and Azure Firewall
+Create a welcome-app service with an Internal LB:
+```bash
+oc apply -f link
+```
+Get the internal IP of a service:
+```bash
+INTERNAL_APP_IP=$(oc get svc welcome-app-internal -o json | jq '.status.loadBalancer.ingress[0].ip')
+```
+Configure a DNAT rule in Azure Firewall:
+```bash
+az network firewall dnat-rule create -g $RESOURCEGROUP -f aro-private \
+ --collection-name 'Docker' \
+ --action allow \
+ --priority 200 \
+ -n 'docker' \
+ --source-addresses '*' \
+ --protocols 'http=80' 'https=443' \
+ --target-fqdns '*cloudflare.docker.com' '*registry-1.docker.io' 'apt.dockerproject.org' 'auth.docker.io'
 ```
