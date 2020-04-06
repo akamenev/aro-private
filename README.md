@@ -166,14 +166,14 @@ az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name "$CLUSTE
 ## Test the configuration
 These steps works only if you added rules for Docker images. 
 ### Configure the jumpbox
-Log into a jumpbox VM and install `azure-cli`, `oc-cli`, and `jq` utils. For the installation of openshift-cli check the customer portal.
+Log into a jumpbox VM and install `azure-cli`, `oc-cli`, and `jq` utils. For the installation of openshift-cli check the Red Hat customer portal.
 ```bash
 #Install Azure-cli
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 #Install jq
 sudo apt install jq -y
 ```
-### Log in ARO cluster
+### Log into the ARO cluster
 List cluster credentials:
 ```bash
 # Initialize variables
@@ -222,34 +222,54 @@ curl microsoft.com
 ### Run a test app and expose it internally via Route
 Create a welcome-app deployment:
 ```bash
-oc apply -f link
+oc apply -f https://raw.githubusercontent.com/akamenev/aro-private/master/welcome-app-deployment.yaml
 ```
 Create a welcome-app service with a ClusterIP:
 ```bash
-oc apply -f link
+oc apply -f https://raw.githubusercontent.com/akamenev/aro-private/master/welcome-app-clusterip-svc.yaml
 ```
 Expose a welcome-app service via route:
 ```bash
 oc expose service welcome-app
 ```
+Check the service
+```bash
+APP_ROUTE=$(oc get route welcome-app -o json | jq -r .spec.host)
+curl $APP_ROUTE
+```
 
 ### Expose the app externally with an Internal Load Balancer and Azure Firewall
 Create a welcome-app service with an Internal LB:
 ```bash
-oc apply -f link
+oc apply -f https://raw.githubusercontent.com/akamenev/aro-private/master/welcome-app-internallb-svc.yaml
 ```
 Get the internal IP of a service:
 ```bash
-INTERNAL_APP_IP=$(oc get svc welcome-app-internal -o json | jq '.status.loadBalancer.ingress[0].ip')
+INTERNAL_APP_IP=$(oc get svc welcome-app-internal -o json | jq -r '.status.loadBalancer.ingress[0].ip')
 ```
 Configure a DNAT rule in Azure Firewall:
 ```bash
-az network firewall dnat-rule create -g $RESOURCEGROUP -f aro-private \
- --collection-name 'Docker' \
- --action allow \
- --priority 200 \
- -n 'docker' \
+# Get a Firewall's public ip
+FWPUBLIC_IP=$(az network public-ip show -g $RESOURCEGROUP -n fw-ip --query "ipAddress" -o tsv)
+echo $FWPUBLIC_IP
+
+# Add a firewall extension
+az extension add -n azure-firewall
+
+# Configure a rule
+az network firewall nat-rule create -g $RESOURCEGROUP -f aro-private \
+ --collection-name 'welcome-app-nat' \
+ --priority 100 \
+ --action 'Dnat' \
+ -n 'welcome-app' \
  --source-addresses '*' \
- --protocols 'http=80' 'https=443' \
- --target-fqdns '*cloudflare.docker.com' '*registry-1.docker.io' 'apt.dockerproject.org' 'auth.docker.io'
+ --destination-address $FWPUBLIC_IP \
+ --destination-ports '80' \
+ --translated-address $INTERNAL_APP_IP \
+ --translated-port '80' \
+ --protocols 'TCP'
+```
+Open Firewall's public IP in a browser or curl it:
+```bash
+curl $FWPUBLIC_IP
 ```
