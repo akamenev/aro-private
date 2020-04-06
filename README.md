@@ -25,8 +25,7 @@ az group create -g "$RESOURCEGROUP" -l $LOCATION
 az network vnet create \
   -g "$RESOURCEGROUP" \
   -n vnet \
-  --address-prefixes 10.0.0.0/8 \
-  >/dev/null
+  --address-prefixes 10.0.0.0/8
 ```
 
 ### Add two empty subnets to your virtual network
@@ -36,16 +35,14 @@ az network vnet create \
     --vnet-name vnet \
     -n "$CLUSTER-master" \
     --address-prefixes 10.10.1.0/24 \
-    --service-endpoints Microsoft.ContainerRegistry \
-    >/dev/null
+    --service-endpoints Microsoft.ContainerRegistry
 
   az network vnet subnet create \
     -g "$RESOURCEGROUP" \
     --vnet-name vnet \
     -n "$CLUSTER-worker" \
     --address-prefixes 10.20.1.0/24 \
-    --service-endpoints Microsoft.ContainerRegistry \
-    >/dev/null
+    --service-endpoints Microsoft.ContainerRegistry
 ```
 
 ### Disable network policies for Private Link Service on your virtual network and subnets. This is a requirement for the ARO service to access and manage the cluster.
@@ -54,8 +51,7 @@ az network vnet subnet update \
   -g "$RESOURCEGROUP" \
   --vnet-name vnet \
   -n "$CLUSTER-master" \
-  --disable-private-link-service-network-policies true \
-  >/dev/null
+  --disable-private-link-service-network-policies true
 ```
 ### Create a Firewall Subnet
 ```bash
@@ -63,11 +59,10 @@ az network vnet subnet create \
     -g "$RESOURCEGROUP" \
     --vnet-name vnet \
     -n "AzureFirewallSubnet" \
-    --address-prefixes 10.100.1.0/26 \
-    >/dev/null
+    --address-prefixes 10.100.1.0/26
 ```
 
-## Create a jump-host VM
+## Create a jump-host VM (Optional)
 ### Create a jump-subnet
 ```bash
   az network vnet subnet create \
@@ -91,6 +86,19 @@ az vm create --name ubuntu-jump \
              --public-ip-address jumphost-ip \
              --vnet-name vnet 
 ```
+
+## Create an Azure Red Hat OpenShift cluster
+```bash
+az aro create \
+  -g "$RESOURCEGROUP" \
+  -n "$CLUSTER" \
+  --vnet vnet \
+  --master-subnet "$CLUSTER-master" \
+  --worker-subnet "$CLUSTER-worker" \
+  --apiserver-visibility Private \
+  --ingress-visibility Private
+```
+
 ## Create an Azure Firewall
 ### Create a public IP Address
 ```bash
@@ -98,7 +106,7 @@ az network public-ip create -g $RESOURCEGROUP -n fw-ip --sku "Standard" --locati
 ```
 ### Update install Azure Firewall extension
 ```bash
-az extension install -n azure-firewall
+az extension add -n azure-firewall
 az extension update -n azure-firewall
 ```
 
@@ -126,7 +134,7 @@ az network route-table route create -g $RESOURCEGROUP --name aru-udr --route-tab
 ```
 
 ### Add Application Rules for Azure Firewall
-Rule for OpenShift to work based on this list:
+Rule for OpenShift to work based on this [list](https://docs.openshift.com/container-platform/4.3/installing/install_config/configuring-firewall.html#configuring-firewall_configuring-firewall):
 ```bash
 az network firewall application-rule create -g $RESOURCEGROUP -f aro-private \
  --collection-name 'OpenShift' \
@@ -153,16 +161,4 @@ az network firewall application-rule create -g $RESOURCEGROUP -f aro-private \
 ```bash
 az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name "$CLUSTER-master" --route-table aro-udr
 az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name "$CLUSTER-worker" --route-table aro-udr
-```
-
-## Create an Azure Red Hat OpenShift cluster
-```bash
-az aro create \
-  -g "$RESOURCEGROUP" \
-  -n "$CLUSTER" \
-  --vnet vnet \
-  --master-subnet "$CLUSTER-master" \
-  --worker-subnet "$CLUSTER-worker" \
-  --apiserver-visibility Private \
-  --ingress-visibility Private
 ```
