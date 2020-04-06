@@ -143,7 +143,7 @@ az network firewall application-rule create -g $RESOURCEGROUP -f aro-private \
  -n 'required' \
  --source-addresses '*' \
  --protocols 'http=80' 'https=443' \
- --target-fqdns 'registry.redhat.io' '*.quay.io' 'sso.redhat.com' 'cert-api.access.redhat.com' 'api.access.redhat.com' 'infogw.api.openshift.com' 'cloud.redhat.com' 'management.azure.com' 'mirror.openshift.com' '*.cloudfront.net' '*.apps.9cj4h6wn.eastus.aroapp.io' 'quay-registry.s3.amazonaws.com' 'api.openshift.com' 'art-rhcos-ci.s3.amazonaws.com'
+ --target-fqdns 'registry.redhat.io' '*.quay.io' 'sso.redhat.com' 'cert-api.access.redhat.com' 'api.access.redhat.com' 'infogw.api.openshift.com' 'cloud.redhat.com' 'management.azure.com' 'mirror.openshift.com' '*.cloudfront.net' '*.apps.9cj4h6wn.eastus.aroapp.io' 'quay-registry.s3.amazonaws.com' 'api.openshift.com' 'art-rhcos-ci.s3.amazonaws.com' 'quay.io'
 ```
 Optional rules for Docker images:
 ```bash
