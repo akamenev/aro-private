@@ -62,7 +62,7 @@ az network vnet subnet create \
     --address-prefixes 10.100.1.0/26
 ```
 
-## Create a jump-host VM (Optional)
+## Create a jump-host VM
 ### Create a jump-subnet
 ```bash
   az network vnet subnet create \
