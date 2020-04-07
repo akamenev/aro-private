@@ -87,6 +87,10 @@ az vm create --name ubuntu-jump \
 ```
 
 ## Create an Azure Red Hat OpenShift cluster
+Get a `pull-secret` value from Red Hat Customer Portal and store it in a variables:
+```bash
+PULL_SECRET='<your_pull_secret>'
+```
 ```bash
 az aro create \
   -g "$RESOURCEGROUP" \
@@ -95,7 +99,8 @@ az aro create \
   --master-subnet "$CLUSTER-master" \
   --worker-subnet "$CLUSTER-worker" \
   --apiserver-visibility Private \
-  --ingress-visibility Private
+  --ingress-visibility Private \
+  --pull-secret $PULL_SECRET
 ```
 
 ## Create an Azure Firewall
