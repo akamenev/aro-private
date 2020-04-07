@@ -70,8 +70,7 @@ az network vnet subnet create \
     --vnet-name vnet \
     -n "jumphost" \
     --address-prefixes 10.30.1.0/24 \
-    --service-endpoints Microsoft.ContainerRegistry \
-    >/dev/null
+    --service-endpoints Microsoft.ContainerRegistry
 ```
 ### Create a jump-host VM
 ```bash
@@ -172,6 +171,8 @@ Log into a jumpbox VM and install `azure-cli`, `oc-cli`, and `jq` utils. For the
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 #Install jq
 sudo apt install jq -y
+#Install aro extension
+az extension add -n aro --index https://az.aroapp.io/preview
 ```
 ### Log into the ARO cluster
 List cluster credentials:
@@ -183,16 +184,17 @@ CLUSTER=aroprivate
 
 # Login to Azure
 az login
-
-az aro lists-credentials -n $CLUSTER -g $RESOURCEGROUP
+#Get the cluster credentials
+ARO_PASSWORD=$(az aro list-credentials -n $CLUSTER -g $RESOURCEGROUP | jq -r '.kubeadminPassword')
+ARO_USERNAME=$(az aro list-credentials -n $CLUSTER -g $RESOURCEGROUP | jq -r '.kubeadminUsername')
 ```
 Get an API server endpoint:
 ```bash
-az aro show -n $CLUSTER -g $RESOURCEGROUP -o json | jq '.apiserverProfile.url'
+ARO_URL=$(az aro show -n $CLUSTER -g $RESOURCEGROUP -o json | jq -r '.apiserverProfile.url')
 ```
 Log in using `oc login`:
 ```bash
-oc login
+oc login $ARO_URL -u $ARO_USERNAME -p $ARO_PASSWORD
 ```
 
 ### Run CentOS to test outside connectivity
