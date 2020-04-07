@@ -1,5 +1,9 @@
 # Private ARO cluster setup
-
+The goal is to secure ARO cluster by routing Egress traffic through an Azure Firewall
+## Before:
+![Before](images/aroprivate.png)
+## After:
+![After](images/arofw.png)
 ## Create network for an ARO cluster
 
 ### Update/install the aro extension
