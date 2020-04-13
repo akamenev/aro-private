@@ -138,7 +138,7 @@ echo $FWPRIVATE_IP
 ```bash
 az network route-table create -g $RESOURCEGROUP --name aro-udr
 
-az network route-table route create -g $RESOURCEGROUP --name aru-udr --route-table-name aro-udr --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $FWPRIVATE_IP
+az network route-table route create -g $RESOURCEGROUP --name aro-udr --route-table-name aro-udr --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $FWPRIVATE_IP
 ```
 
 ### Add Application Rules for Azure Firewall
@@ -151,7 +151,7 @@ az network firewall application-rule create -g $RESOURCEGROUP -f aro-private \
  -n 'required' \
  --source-addresses '*' \
  --protocols 'http=80' 'https=443' \
- --target-fqdns 'registry.redhat.io' '*.quay.io' 'sso.redhat.com' 'cert-api.access.redhat.com' 'api.access.redhat.com' 'infogw.api.openshift.com' 'cloud.redhat.com' 'management.azure.com' 'mirror.openshift.com' '*.cloudfront.net' 'quay-registry.s3.amazonaws.com' 'api.openshift.com' 'art-rhcos-ci.s3.amazonaws.com' 'quay.io'
+ --target-fqdns 'registry.redhat.io' '*.quay.io' 'sso.redhat.com' 'management.azure.com' 'mirror.openshift.com' 'api.openshift.com' 'quay.io' '*.blob.core.windows.net' 'gcs.prod.monitoring.core.windows.net' 'registry.access.redhat.com' 'login.microsoftonline.com' '*.servicebus.windows.net' '*.table.core.windows.net' 'grafana.com'
 ```
 Optional rules for Docker images:
 ```bash
