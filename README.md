@@ -14,7 +14,7 @@ az extension update -n aro
 
 ### Set the variables
 ```bash
-LOCATION=eastus
+LOCATION=westeurope
 RESOURCEGROUP=aro-v4-private
 CLUSTER=aroprivate
 ```
