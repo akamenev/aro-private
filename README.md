@@ -8,7 +8,7 @@ The goal is to secure ARO cluster by routing Egress traffic through an Azure Fir
 
 ### Update/install the aro extension
 ```bash
-az extension add -n aro --index https://az.aroapp.io/preview
+az extension add -n aro --index https://az.aroapp.io/stable
 az extension update -n aro
 ```
 
