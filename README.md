@@ -181,7 +181,7 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 #Install jq
 sudo apt install jq -y
 #Install aro extension
-az extension add -n aro --index https://az.aroapp.io/preview
+az extension add -n aro --index https://az.aroapp.io/stable
 ```
 ### Log into the ARO cluster
 List cluster credentials:
