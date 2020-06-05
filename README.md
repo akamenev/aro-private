@@ -194,8 +194,8 @@ CLUSTER=aroprivate
 # Login to Azure
 az login
 #Get the cluster credentials
-ARO_PASSWORD=$(az aro list-credentials -n $CLUSTER -g $RESOURCEGROUP | jq -r '.kubeadminPassword')
-ARO_USERNAME=$(az aro list-credentials -n $CLUSTER -g $RESOURCEGROUP | jq -r '.kubeadminUsername')
+ARO_PASSWORD=$(az aro list-credentials -n $CLUSTER -g $RESOURCEGROUP -o json | jq -r '.kubeadminPassword')
+ARO_USERNAME=$(az aro list-credentials -n $CLUSTER -g $RESOURCEGROUP -o json | jq -r '.kubeadminUsername')
 ```
 Get an API server endpoint:
 ```bash
