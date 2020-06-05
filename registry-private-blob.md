@@ -20,8 +20,16 @@ az storage container create --name $STORAGE_CONTAINER_NAME --account-name $STORA
 
 ## Create private link
 Configure private link on a created storage account
+1. Choose your resource group and give private enpoint a name
+
 ![Basics](images/Basics.png)
+
+2. Choose 'storageAccounts' resource type, your storage account and 'blob' as a target sub-resource
+
 ![Resource](images/Resource.png)
+
+3. Choose your vnet and subnet. Under the 'Private DNS Integration' section choose 'Yes'
+
 ![Configuration](images/Configuration.png)
 
 ## Create a secret that containers a storage account key
