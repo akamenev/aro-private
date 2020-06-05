@@ -1,4 +1,4 @@
-# Configure built-in Container registry to use Storage Account with Private Link
+# Configure built-in OpenShift container registry to use Storage Account with Private Link
 
 ## Initialize variables
 ```bash
