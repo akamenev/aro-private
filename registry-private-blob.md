@@ -32,7 +32,7 @@ Configure private link on a created storage account
 
 ![Configuration](images/Configuration.png)
 
-## Create a secret that containers a storage account key
+## Create a secret that contains a storage account key
 ```bash
 export STORAGE_ACCOUNT_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT_NAME -o json | jq -r '.[0].value')
 
